@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Form Test</title>
+
+  <!-- Google reCAPTCHA v2 Script -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .form-card {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    #form-status {
+      margin-top: 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-card">
+    <h2>Contact Us</h2>
+    <form id="contact-form">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" rows="4" required></textarea>
+      </div>
+
+      <!-- PASTE YOUR RECAPTCHA SITE KEY IN data-sitekey -->
+      <div class="g-recaptcha" data-sitekey="6Le2YfAtAAAAAON3E6lwD91YoMuhofrzb37I3Scg" style="margin-bottom: 16px;"></div>
+
+      <button type="submit" id="submit-btn">Send Message</button>
+      <p id="form-status"></p>
+    </form>
+  </div>
+
+  <script>
+    // 1. PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzE2nGTsr6bC2uv9VyD7O0YV63XSD2HXMFNFLD1VZc8l05kqCjcz42fq07DXnUVYMt/exec";
+
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Check if reCAPTCHA was completed
+      const captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        alert("Please complete the reCAPTCHA box before submitting.");
+        return;
+      }
+
+      const statusText = document.getElementById('form-status');
+      const submitBtn = document.getElementById('submit-btn');
+
+      submitBtn.disabled = true;
+      statusText.style.color = "#333";
+      statusText.textContent = "Sending message...";
+
+      const payload = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        message: document.getElementById('message').value
+      };
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Apps Script requires no-cors redirect
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        statusText.style.color = "green";
+        statusText.textContent = "Message sent successfully!";
+        document.getElementById('contact-form').reset();
+        grecaptcha.reset();
+      } catch (err) {
+        statusText.style.color = "red";
+        statusText.textContent = "Failed to send message. Please try again.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
